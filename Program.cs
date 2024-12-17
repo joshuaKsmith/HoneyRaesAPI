@@ -216,4 +216,35 @@ app.MapGet("/customers/{id}", (int id) =>
     });
 });
 
+app.MapPost("/servicetickets", (ServiceTicket serviceTicket) => 
+{
+    // get customer info of this ticket
+    Customer customer = customers.FirstOrDefault(c => c.Id == serviceTicket.CustomerId);
+
+    // error handling if there is no customer
+    if (customer == null)
+    {
+        return Results.BadRequest();
+    }
+
+    // take current highest ticket id
+    serviceTicket.Id = serviceTickets.Max(st => st.Id) + 1;
+    serviceTickets.Add(serviceTicket);
+
+    // Created returns a 201 status code with a link in the headers to where the new resource can be accessed
+    return Results.Created($"/servicetickets/{serviceTicket.Id}", new ServiceTicketDTO
+    {
+        Id = serviceTicket.Id,
+        CustomerId = serviceTicket.CustomerId,
+        Customer = new CustomerDTO
+        {
+            Id = customer.Id,
+            Name = customer.Name,
+            Address = customer.Address
+        },
+        Description = serviceTicket.Description,
+        Emergency = serviceTicket.Emergency
+    });
+});
+
 app.Run();
