@@ -61,7 +61,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 1,
         Description = "iPhone screen repair",
         Emergency = false,
-        DateCompleted = new DateOnly()
+        DateCompleted = new DateTime()
     },
     new ServiceTicket()
     {
@@ -70,7 +70,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         EmployeeId = 2,
         Description = "Macbook screen repair",
         Emergency = false,
-        DateCompleted = new DateOnly()
+        DateCompleted = new DateTime()
     },
     new ServiceTicket()
     {
@@ -78,7 +78,7 @@ List<ServiceTicket> serviceTickets = new List<ServiceTicket>
         CustomerId = 3,
         Description = "Lenovo screen repair",
         Emergency = true,
-        DateCompleted = new DateOnly()
+        DateCompleted = new DateTime()
     }
 };
 
@@ -282,6 +282,13 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     ticketToUpdate.Emergency = serviceTicket.Emergency;
     ticketToUpdate.DateCompleted = serviceTicket.DateCompleted;
     
+    return Results.NoContent();
+});
+
+app.MapPost("/servicetickets/{id}/complete", (int id) => 
+{
+    ServiceTicket ticketToComplete = serviceTickets.FirstOrDefault(st => st.Id == id);
+    ticketToComplete.DateCompleted = DateTime.Today;
     return Results.NoContent();
 });
 
