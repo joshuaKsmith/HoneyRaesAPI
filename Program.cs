@@ -107,7 +107,6 @@ app.MapGet("/serviceTickets", () =>
     {
         Id = t.Id,
         CustomerId = t.CustomerId,
-        
         EmployeeId = t.EmployeeId,
         Description = t.Description,
         Emergency = t.Emergency,
@@ -250,8 +249,17 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
 
 app.MapDelete("/servicetickets/{id}", (int id) => 
 {
-    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
-    serviceTickets.Remove(serviceTicket);
+    ServiceTicket ticketToDelete = serviceTickets.FirstOrDefault(st => st.Id == id);
+
+    if (ticketToDelete == null)
+    {
+        return Results.NotFound();
+    }
+    if (ticketToDelete.Id != id)
+    {
+        return Results.BadRequest();
+    }
+    serviceTickets.Remove(ticketToDelete);
     return Results.NoContent();
 });
 
