@@ -247,4 +247,11 @@ app.MapPost("/servicetickets", (ServiceTicket serviceTicket) =>
     });
 });
 
+app.MapDelete("/serviceTickets/{id}", (int id) => 
+{
+    ServiceTicket serviceTicket = serviceTickets.FirstOrDefault(st => st.Id == id);
+    serviceTickets.Remove(serviceTicket);
+    return Results.NoContent();
+});
+
 app.Run();
