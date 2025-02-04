@@ -1,5 +1,8 @@
+using Npgsql;
 using HoneyRaesAPI.Models;
 using HoneyRaesAPI.Models.DTOs;
+var connectionString = "Host=localhost;Port=5432;Username=postgres;Password=Glimpse123!;Database=HoneyRaes";
+
 List<Customer> customers = new List<Customer>
 {
     new Customer()
@@ -148,12 +151,37 @@ app.MapGet("/servicetickets/{id}", (int id) =>
 
 app.MapGet("/employees", () =>
 {
-    return employees.Select(e => new EmployeeDTO
+    // make an empty list
+    List<Employee> employees = new List<Employee>();
+
+    // create Postgres connection string
+    using NpgsqlConnection connection = new NpgsqlConnection(connectionString);
+
+    // open connection
+    connection.Open();
+
+    // create an sql command 
+    using NpgsqlCommand command = connection.CreateCommand();
+    command.CommandText = "SELECT * FROM Employee";
+
+    // send the command
+    using NpgsqlDataReader reader = command.ExecuteReader();
+
+    // read command results row by row
+    while (reader.Read())  // reader.Read() returns a boolean, to say whether there is a row or not; it also advances down to that row if it exists
     {
-        Id = e.Id,
-        Name = e.Name,
-        Specialty = e.Specialty
-    });
+        // add a new C# Employee object using the data reader's current row
+        employees.Add(new Employee
+        {
+            Id = reader.GetInt32(reader.GetOrdinal("Id")),  // find what position the Id column is in, then get the integer store
+            Name = reader.GetString(reader.GetOrdinal("Name")),
+            Specialty = reader.GetString(reader.GetOrdinal("Specialty"))
+        });
+    };
+
+    // once all row are read, return employee list back to client as JSON
+    return employees;
+
 });
 
 app.MapGet("/employees/{id}", (int id) =>
