@@ -186,27 +186,27 @@ app.MapGet("/employees", () =>
 
 app.MapGet("/employees/{id}", (int id) =>
 {
-    Employee employee = employees.FirstOrDefault(e => e.Id == id);
-    if (employee == null)
+    Employee employee = null;
+    using NpgsqlConnection connection = new NpgsqlConnection(connectionString);
+    connection.Open();
+    using NpgsqlCommand command = connection.CreateCommand();
+    command.CommandText = "SELECT * FROM Employee WHERE Id = @id";
+
+    // use command parameters to add the specific Id we are looking for to the query
+    command.Parameters.AddWithValue("@id", id);
+    using NpgsqlDataReader reader = command.ExecuteReader();
+
+    // we are only expecting one row back so no loop is needed
+    if (reader.Read())
     {
-        return Results.NotFound();
-    }
-    List<ServiceTicket> tickets = serviceTickets.Where(st => st.EmployeeId == id).ToList();
-    return Results.Ok(new EmployeeDTO
-    {
-        Id = employee.Id,
-        Name = employee.Name,
-        Specialty = employee.Specialty,
-        ServiceTickets = tickets.Select(t => new ServiceTicketDTO
+        employee = new Employee
         {
-            Id = t.Id,
-            CustomerId = t.CustomerId,
-            EmployeeId = t.EmployeeId,
-            Description = t.Description,
-            Emergency = t.Emergency,
-            DateCompleted = t.DateCompleted
-        }).ToList()
-    });
+            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Name = reader.GetString(reader.GetOrdinal("Name")),
+            Specialty = reader.GetString(reader.GetOrdinal("Specialty"))
+        };
+    };
+    return employee;
 });
 
 app.MapGet("/customers", () => 
